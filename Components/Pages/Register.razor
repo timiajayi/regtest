@@ -1,0 +1,90 @@
+﻿@page "/register/{studentId}"
+@using Registrar.Models
+@using static Registrar.Data.Helper
+@inject NavigationManager Navigation
+
+<h3>Register</h3>
+
+@if (student == null)
+{
+    <p>Invalid student ID. Redirecting...</p>
+}
+else
+{
+    <EditForm Model="@student" OnValidSubmit="HandleValidSubmit">
+        <p>@student.FirstName @student.LastName</p>
+        <div>
+            @foreach (var course in availableCourses)
+            {
+                <div>
+                    <label>
+                        <InputCheckbox @bind-Value="course.IsSelected" />
+                        @course.Title
+                    </label>
+                </div>
+            }
+        </div>
+        <button type="submit" class="btn btn-primary">Register</button>
+    </EditForm>
+}
+
+<NavLink class="btn btn-secondary" href="/">Back to Students</NavLink>
+
+@code {
+    [Parameter]
+    public string studentId { get; set; }
+
+    private Student? student;
+    private List<Course> availableCourses = new List<Course>();
+
+    protected override void OnInitialized()
+    {
+        if (int.TryParse(studentId, out int id))
+        {
+            student = GetStudentById(id);
+
+            if (student == null)
+            {
+                Navigation.NavigateTo("/");
+            }
+            else
+            {
+                availableCourses = Courses.Select(c => new Course
+                {
+                    Code = c.Code,
+                    Title = c.Title,
+                    WeeklyHours = c.WeeklyHours,
+                    IsEnrolled = student.Courses.Any(sc => sc.Code == c.Code),
+                    IsSelected = student.Courses.Any(sc => sc.Code == c.Code)
+                }).ToList();
+            }
+        }
+        else
+        {
+            Navigation.NavigateTo("/");
+        }
+    }
+
+    private void HandleValidSubmit()
+    {
+        if (student == null) return;
+
+        foreach (var course in availableCourses.Where(c => c.IsSelected))
+        {
+            if (!student.Courses.Any(c => c.Code == course.Code))
+            {
+                student.Courses.Add(course);
+            }
+        }
+
+        foreach (var course in student.Courses.ToList())
+        {
+            if (!availableCourses.Any(c => c.Code == course.Code && c.IsSelected))
+            {
+                student.Courses.Remove(course);
+            }
+        }
+
+        Navigation.NavigateTo("/");
+    }
+}

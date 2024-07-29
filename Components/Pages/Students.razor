@@ -1,0 +1,37 @@
+﻿@page "/"
+
+@using Registrar.Models
+@using Registrar.Data 
+
+<body>
+    <div class="d-flex justify-content-end">
+        <a href="/AddStudent" class="btn btn-secondary">&plus;</a> 
+    </div><br>
+
+<table class="table table-primary">
+  <thead class="table-danger">
+    <tr>
+      <th scope="col">Id</th>
+      <th scope="col">First Name</th>
+      <th scope="col">Last Name</th>                                                      
+      <th scope="col">Type</th>
+      <th scope="col">Action</th>
+        
+    </tr>
+  </thead>
+ <tbody>
+        @foreach (var student in Helper.GetStudents())
+        {
+            <tr>
+                <td>@student.Id</td>
+                <td>@student.FirstName</td>
+                <td>@student.LastName</td>
+                <td>@student.Type</td>
+                <td>
+                    <NavLink class="btn btn-primary" href="@($"/register/{student.Id}")">Register</NavLink>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+</body>

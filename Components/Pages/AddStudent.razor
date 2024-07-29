@@ -1,0 +1,29 @@
+﻿@page "/AddStudent"
+<body>
+    <form class="row g-3">
+        <div class="row-cols-md-6">
+            <label for="text" class="form-label">First Name</label>
+            <input type="text" class="form-control" id="inputtext">
+        </div>
+        <div class="row-cols-md-6">
+            <label for="text" class="form-label">Last NAme</label>
+            <input type="text" class="form-control" id="inputtext">
+        </div>
+        <div class="row-cols-md-6">
+            <label for="text" class="form-label">Student Type</label
+            <label class="visually-hidden" for="inlineFormSelectPref">Preference</label>
+            <select class="form-select" id="inlineFormSelectPref">
+                <option selected>Select a Student Type</option>
+                <option value="1">Part Time</option>
+                <option value="2">Full Time</option>
+                <option value="3">Coop</option>
+            </select>
+        </div>
+        <div class="col-12">
+     <button type="submit" class="btn btn-primary">Add Student</button>
+     <NavLink class="btn btn-danger" href="/">Cancel</NavLink>
+
+        </div>
+       
+    </form>
+</body>
