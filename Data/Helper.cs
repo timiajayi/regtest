@@ -7,7 +7,7 @@ namespace Registrar.Data
 {
     public class Helper
     {
-        private static int _nextId = 1; // Static counter for generating unique IDs
+        private static int _nextId = 1; 
 
         static Helper()
         {
@@ -86,50 +86,50 @@ namespace Registrar.Data
         {
             List<Student> students = new List<Student>();
 
-            students.Add(new Student
-            {
-                Id = 437374,
-                FirstName = "Grace",
-                LastName = "Desmond",
-                Type = "Part Time",
-                Action = "Register"
-            });
+            // students.Add(new Student
+            // {
+            //     // StudentId = 437374,
+            //     FirstName = "Grace",
+            //     LastName = "Desmond",
+            //     Type = "Part Time",
+            //     Action = "Register"
+            // });
 
-            students.Add(new Student
-            {
-                Id = 457902,
-                FirstName = "Gimmy",
-                LastName = "Jones",
-                Type = "Full Time",
-                Action = "Register"
-            });
+            // students.Add(new Student
+            // {
+            //     // StudentId = 457902,
+            //     FirstName = "Gimmy",
+            //     LastName = "Jones",
+            //     Type = "Full Time",
+            //     Action = "Register"
+            // });
 
-            students.Add(new Student
-            {
-                Id = 877694,
-                FirstName = "Mary",
-                LastName = "Smail",
-                Type = "Coop",
-                Action = "Register"
-            });
+            // students.Add(new Student
+            // {
+            //     // StudentId = 877694,
+            //     FirstName = "Mary",
+            //     LastName = "Smail",
+            //     Type = "Coop",
+            //     Action = "Register"
+            // });
 
-            students.Add(new Student
-            {
-                Id = 788945,
-                FirstName = "Precious",
-                LastName = "Dabere",
-                Type = "Full Time",
-                Action = "Register"
-            });
+            // students.Add(new Student
+            // {
+            //     // StudentId = 788945,
+            //     FirstName = "Precious",
+            //     LastName = "Dabere",
+            //     Type = "Full Time",
+            //     Action = "Register"
+            // });
 
-            students.Add(new Student
-            {
-                Id = 434994,
-                FirstName = "Nicole",
-                LastName = "Kennedy",
-                Type = "Coop",
-                Action = "Register"
-            });
+            // students.Add(new Student
+            // {
+            //     // StudentId = 434994,
+            //     FirstName = "Nicole",
+            //     LastName = "Kennedy",
+            //     Type = "Coop",
+            //     Action = "Register"
+            // });
 
             return students;
         }
@@ -140,7 +140,7 @@ namespace Registrar.Data
         }
         public static Student? GetStudentById(int id)
         {
-            return GetStudents().FirstOrDefault(s => s.Id == id);
+        return GetStudents().FirstOrDefault(s => s.Id == id);
         }
         private static int GenerateId()
         {

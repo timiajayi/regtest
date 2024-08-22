@@ -1,29 +1,78 @@
 ﻿@page "/AddStudent"
-<body>
-    <form class="row g-3">
-        <div class="row-cols-md-6">
-            <label for="text" class="form-label">First Name</label>
-            <input type="text" class="form-control" id="inputtext">
-        </div>
-        <div class="row-cols-md-6">
-            <label for="text" class="form-label">Last NAme</label>
-            <input type="text" class="form-control" id="inputtext">
-        </div>
-        <div class="row-cols-md-6">
-            <label for="text" class="form-label">Student Type</label
-            <label class="visually-hidden" for="inlineFormSelectPref">Preference</label>
-            <select class="form-select" id="inlineFormSelectPref">
-                <option selected>Select a Student Type</option>
-                <option value="1">Part Time</option>
-                <option value="2">Full Time</option>
-                <option value="3">Coop</option>
-            </select>
-        </div>
-        <div class="col-12">
-     <button type="submit" class="btn btn-primary">Add Student</button>
-     <NavLink class="btn btn-danger" href="/">Cancel</NavLink>
+@using Registrar.Models
+@using Registrar.Data
+@inject RegistrarContext DbContext
+@inject NavigationManager NavigationManager
+@inject ILogger<AddStudent> Logger
 
-        </div>
-       
-    </form>
-</body>
+<h3>Add Student</h3>
+
+<EditForm Model="@newStudent" OnValidSubmit="HandleValidSubmit" FormName="addStudentForm">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label for="firstName">First Name</label>
+        <InputText id="firstName" @bind-Value="newStudent.FirstName" class="form-control" />
+        <ValidationMessage For="@(() => newStudent.FirstName)" />
+    </div>
+
+    <div class="form-group">
+        <label for="lastName">Last Name</label>
+        <InputText id="lastName" @bind-Value="newStudent.LastName" class="form-control" />
+        <ValidationMessage For="@(() => newStudent.LastName)" />
+    </div>
+
+    <div class="form-group">
+        <label for="type">Student Type</label>
+        <InputSelect id="type" @bind-Value="newStudent.Type" class="form-control">
+            <option value="">Select a Student Type</option>
+            <option value="Part Time">Part Time</option>
+            <option value="Full Time">Full Time</option>
+            <option value="Coop">Coop</option>
+        </InputSelect>
+        <ValidationMessage For="@(() => newStudent.Type)" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Add Student</button>
+    <NavLink class="btn btn-secondary" href="/">Cancel</NavLink>
+</EditForm>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger mt-3">@errorMessage</div>
+}
+
+@code {
+    private Student newStudent = new Student();
+    private string errorMessage = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        newStudent = new Student();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (string.IsNullOrWhiteSpace(newStudent.FirstName) || 
+            string.IsNullOrWhiteSpace(newStudent.LastName) || 
+            string.IsNullOrWhiteSpace(newStudent.Type))
+        {
+            errorMessage = "Please fill in all fields.";
+            return;
+        }
+
+        try
+        {
+            DbContext.Students.Add(newStudent);
+            await DbContext.SaveChangesAsync();
+            Logger.LogInformation($"New student added: {newStudent.FirstName} {newStudent.LastName}");
+            NavigationManager.NavigateTo("/");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error adding new student");
+            errorMessage = "An error occurred while adding the student. Please try again.";
+        }
+    }
+}
