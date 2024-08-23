@@ -116,7 +116,7 @@ else
                 DbContext.Students.Update(student);
                 await DbContext.SaveChangesAsync();
 
-                NavigationManager.NavigateTo("/");
+                  await InvokeAsync(() => NavigationManager.NavigateTo("/"));
             }
         }
         catch (Exception ex)

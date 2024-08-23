@@ -1,0 +1,55 @@
+@page "/AddCourse"
+@using Registrar.Models
+@using Registrar.Data
+@inject RegistrarContext DbContext
+@inject NavigationManager NavigationManager
+@inject ILogger<AddCourse> Logger
+
+<h3>Add Course</h3>
+
+<EditForm Model="@newCourse" OnValidSubmit="HandleValidSubmit" FormName="addCourseForm">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label for="code">Course Code</label>
+        <InputText id="code" @bind-Value="newCourse.Code" class="form-control" />
+        <ValidationMessage For="@(() => newCourse.Code)" />
+    </div>
+
+    <div class="form-group">
+        <label for="title">Course Title</label>
+        <InputText id="title" @bind-Value="newCourse.Title" class="form-control" />
+        <ValidationMessage For="@(() => newCourse.Title)" />
+    </div>
+
+    <div class="form-group">
+        <label for="weeklyHours">Weekly Hours</label>
+        <InputNumber id="weeklyHours" @bind-Value="newCourse.WeeklyHours" class="form-control" />
+        <ValidationMessage For="@(() => newCourse.WeeklyHours)" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Add Course</button>
+    <NavLink class="btn btn-secondary" href="/">Cancel</NavLink>
+</EditForm>
+
+@code {
+    private Course newCourse = new Course();
+
+   private async Task HandleValidSubmit()
+{
+    try
+    {
+        Logger.LogInformation($"Attempting to add course: {newCourse.Code} - {newCourse.Title}");
+        DbContext.Courses.Add(newCourse);
+        await DbContext.SaveChangesAsync();
+        Logger.LogInformation($"New course added successfully: {newCourse.Code} - {newCourse.Title}");
+        await InvokeAsync(() => NavigationManager.NavigateTo("/"));
+    }
+    catch (Exception ex)
+    {
+        Logger.LogError(ex, "Error adding new course");
+    }
+}
+
+}
