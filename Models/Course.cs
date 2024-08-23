@@ -1,18 +1,11 @@
-﻿namespace Registrar;
-
-public class Course
+﻿namespace Registrar.Models
 {
-  public string Code { get; set; } = "";
-  public string Title { get; set; } = "";
-  public int WeeklyHours { get; set; }
-  public bool IsEnrolled { get; set; } = false;
-  public bool IsSelected { get; set; }
-
-	public override string ToString()
-  {
-      return Code + " " + Title + " " + WeeklyHours.ToString() + (WeeklyHours==1 ? "hour":" hours") + " per week";
-  }
+    public class Course
+    {
+        public int Id { get; set; }
+        public string Code { get; set; } = "";
+        public string Title { get; set; } = "";
+        public int WeeklyHours { get; set; }
+        public ICollection<Registration> Registrations { get; set; } = new List<Registration>();
+    }
 }
-
-
-

@@ -1,90 +1,147 @@
-﻿@page "/register/{studentId}"
+﻿@page "/register/{studentId:int}"
 @using Registrar.Models
-@using static Registrar.Data.Helper
-@inject NavigationManager Navigation
+@using Registrar.Data
+@using Microsoft.EntityFrameworkCore
+@inject RegistrarContext DbContext
+@inject NavigationManager NavigationManager
+@inject ILogger<Register> Logger
+@inject IJSRuntime JSRuntime
 
-<h3>Register</h3>
+<h3>Register Courses</h3>
 
 @if (student == null)
 {
-    <p>Invalid student ID. Redirecting...</p>
+    <p>Loading...</p>
 }
 else
 {
-    <EditForm Model="@student" OnValidSubmit="HandleValidSubmit">
-        <p>@student.FirstName @student.LastName</p>
-        <div>
-            @foreach (var course in availableCourses)
-            {
-                <div>
-                    <label>
-                        <InputCheckbox @bind-Value="course.IsSelected" />
-                        @course.Title
-                    </label>
-                </div>
-            }
-        </div>
-        <button type="submit" class="btn btn-primary">Register</button>
+    <h4>@student.FirstName @student.LastName</h4>
+
+    <EditForm Model="@registrationModel" OnValidSubmit="HandleValidSubmit" FormName="registerForm">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Title</th>
+                    <th>Weekly Hours</th>
+                    <th>Select</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var course in availableCourses)
+                {
+                    <tr>
+                        <td>@course.Code</td>
+                        <td>@course.Title</td>
+                        <td>@course.WeeklyHours</td>
+                        <td>
+                            <input type="checkbox"
+                                   @bind="course.IsSelected" />
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <button type="submit" class="btn btn-primary mt-3">Register Courses</button>
     </EditForm>
 }
 
-<NavLink class="btn btn-secondary" href="/">Back to Students</NavLink>
+<NavLink class="btn btn-secondary mt-3" href="/">Back to Students</NavLink>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger mt-3">@errorMessage</div>
+}
 
 @code {
     [Parameter]
-    public string studentId { get; set; }
+    public int studentId { get; set; }
 
     private Student? student;
-    private List<Course> availableCourses = new List<Course>();
+    private List<CourseViewModel> availableCourses = new List<CourseViewModel>();
+    private RegistrationModel registrationModel = new RegistrationModel();
+    private string errorMessage = string.Empty;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        if (int.TryParse(studentId, out int id))
+        try
         {
-            student = GetStudentById(id);
+            student = await DbContext.Students
+                .Include(s => s.Registrations)
+                .ThenInclude(r => r.Course)
+                .FirstOrDefaultAsync(s => s.Id == studentId);
 
             if (student == null)
             {
-                Navigation.NavigateTo("/");
+                NavigationManager.NavigateTo("/");
+                return;
             }
-            else
+
+            var courses = await DbContext.Courses.ToListAsync();
+            var enrolledCourseIds = student.Registrations.Select(r => r.CourseId).ToList();
+
+            availableCourses = courses.Select(c => new CourseViewModel
             {
-                availableCourses = Courses.Select(c => new Course
-                {
-                    Code = c.Code,
-                    Title = c.Title,
-                    WeeklyHours = c.WeeklyHours,
-                    IsEnrolled = student.Courses.Any(sc => sc.Code == c.Code),
-                    IsSelected = student.Courses.Any(sc => sc.Code == c.Code)
-                }).ToList();
-            }
+                Id = c.Id,
+                Code = c.Code,
+                Title = c.Title,
+                WeeklyHours = c.WeeklyHours,
+                IsSelected = enrolledCourseIds.Contains(c.Id)
+            }).ToList();
+
+            registrationModel.Courses = availableCourses;
         }
-        else
+        catch (Exception ex)
         {
-            Navigation.NavigateTo("/");
+            Logger.LogError(ex, "Error loading student and courses");
+            errorMessage = "An error occurred while loading the data. Please try again.";
         }
     }
 
-    private void HandleValidSubmit()
+    private async Task HandleValidSubmit()
     {
-        if (student == null) return;
-
-        foreach (var course in availableCourses.Where(c => c.IsSelected))
+        try
         {
-            if (!student.Courses.Any(c => c.Code == course.Code))
+            if (student != null)
             {
-                student.Courses.Add(course);
+                var selectedCourseIds = availableCourses.Where(c => c.IsSelected).Select(c => c.Id).ToList();
+                var coursesToAdd = await DbContext.Courses.Where(c => selectedCourseIds.Contains(c.Id)).ToListAsync();
+
+                student.Registrations.Clear();
+                student.Registrations = coursesToAdd.Select(c => new Registration { StudentId = student.Id, CourseId = c.Id }).ToList();
+
+                DbContext.Students.Update(student);
+                await DbContext.SaveChangesAsync();
+
+                NavigationManager.NavigateTo("/");
             }
         }
-
-        foreach (var course in student.Courses.ToList())
+        catch (Exception ex)
         {
-            if (!availableCourses.Any(c => c.Code == course.Code && c.IsSelected))
-            {
-                student.Courses.Remove(course);
-            }
+            Logger.LogError(ex, "Error registering courses");
+            errorMessage = "An error occurred while registering courses. Please try again.";
         }
+    }
 
-        Navigation.NavigateTo("/");
+    private void OnCourseSelectionChanged(CourseViewModel course)
+    {
+        // This method can be used if you need to perform any actions when a course is selected/deselected
+    }
+
+    public class CourseViewModel
+    {
+        public int Id { get; set; }
+        public string Code { get; set; } = "";
+        public string Title { get; set; } = "";
+        public int WeeklyHours { get; set; }
+        public bool IsSelected { get; set; }
+    }
+
+    public class RegistrationModel
+    {
+        public List<CourseViewModel> Courses { get; set; } = new List<CourseViewModel>();
     }
 }

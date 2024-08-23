@@ -2,36 +2,60 @@
 
 @using Registrar.Models
 @using Registrar.Data 
+@using Registrar.Services
+@using Microsoft.EntityFrameworkCore
+@inject RegistrarContext DbContext
+@inject NavigationManager Navigation
+@inject IStudentService StudentService
 
-<body>
-    <div class="d-flex justify-content-end">
-        <a href="/AddStudent" class="btn btn-secondary">&plus;</a> 
-    </div><br>
+<div class="d-flex justify-content-end">
+    <a href="/AddStudent" class="btn btn-primary">&plus;</a> 
+</div><br>
 
-<table class="table table-primary">
-  <thead class="table-danger">
-    <tr>
-      <th scope="col">Id</th>
-      <th scope="col">First Name</th>
-      <th scope="col">Last Name</th>                                                      
-      <th scope="col">Type</th>
-      <th scope="col">Action</th>
-        
-    </tr>
-  </thead>
- <tbody>
-        @foreach (var student in Helper.GetStudents())
-        {
+<h3>Students List</h3>
+
+@if (students == null)
+{
+    <p><em>Loading...</em></p>
+}
+else if (!students.Any())
+{
+    <p><em>No students found.</em></p>
+}
+else
+{
+    <table class="table table-primary">
+        <thead class="table-danger">
             <tr>
-                <td>@student.Id</td>
-                <td>@student.FirstName</td>
-                <td>@student.LastName</td>
-                <td>@student.Type</td>
-                <td>
-                    <NavLink class="btn btn-primary" href="@($"/register/{student.Id}")">Register</NavLink>
-                </td>
+                <th scope="col">Student Id</th>
+                <th scope="col">First Name</th>
+                <th scope="col">Last Name</th>                                                      
+                <th scope="col">Type</th>
+                <th scope="col">Action</th>
             </tr>
-        }
-    </tbody>
-</table>
-</body>
+        </thead>
+        <tbody>
+            @foreach (var student in students)
+            {
+                <tr>
+                    <td>@student.Id</td>
+                    <td>@student.FirstName</td>
+                    <td>@student.LastName</td>
+                    <td>@student.Type</td>
+                    <td>
+                        <NavLink class="btn btn-primary" href="@($"/register/{student.Id}")">Register</NavLink>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Student>? students;
+
+    protected override async Task OnInitializedAsync()
+    {
+        students = await DbContext.Students.ToListAsync();
+    }
+}
